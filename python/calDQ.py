@@ -18,7 +18,7 @@ def DQ_VaR(alpha, loss_ratio):
         VaR[i] = np.quantile(loss_ratio[:, i], 1 - alpha)
 
     # calculate DQ_VaR
-    DQ_VaR = np.sum((np.sum(loss_ratio, axis=0) > np.sum(VaR))) / n_data / alpha 
+    DQ_VaR = np.sum((np.sum(loss_ratio, axis=1) > np.sum(VaR))) / n_data / alpha 
 
     return DQ_VaR
 

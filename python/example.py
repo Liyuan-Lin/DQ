@@ -12,8 +12,6 @@ path = "./data/"
 
 alpha = 0.05
 
-
-
 n_training = 500
 
 loss_ratio = dataLoader(path, start_date="2011-01-01")
