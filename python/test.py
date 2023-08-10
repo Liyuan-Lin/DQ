@@ -24,14 +24,20 @@ n_stock = loss_ratio.shape[1]       # number of stocks = number of rows
 w = np.ones(n_stock) / n_stock
 
 
+DQVaR = DQ_VaR(alpha, loss_ratio.values)
+
+DQES = DQ_ES(alpha, loss_ratio.values)
+
 # calculate the optimal investment weight that minimizes the DQ_VaR
-w, _ = opt_DQ_VaR(alpha, loss_ratio.T.values, tie_breaker=True, w_0=w)
+w, _ = opt_DQ_VaR(alpha, loss_ratio.values, tie_breaker=True, w_0=w)
 
-v, _ = opt_DQ_ES(alpha, loss_ratio.T.values, tie_breaker=True, w_0=w)
+v, _ = opt_DQ_ES(alpha, loss_ratio.values, tie_breaker=True, w_0=w)
 
+print(DQVaR)
+
+print(DQES)
 
 print(w)
 
 print(v)
 
-print(sum(v))

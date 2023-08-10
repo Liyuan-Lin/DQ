@@ -6,17 +6,17 @@ def opt_DQ_VaR(alpha, loss_ratio, tie_breaker=False, w_0=None):
     # alpha: confidence level
     # loss_ratio: 2-dimension loss ratio of the portfolio
 
-    n_stock = loss_ratio.shape[0]       # number of stocks = number of rows  
-    n_data = loss_ratio.shape[1]        # number of data = number of columns
+    n_stock = loss_ratio.shape[1]       # number of stocks = number of rows  
+    n_data = loss_ratio.shape[0]        # number of data = number of columns
 
     # calculate the VaR of each stock
     Y = np.zeros_like(loss_ratio)
 
     for i in range(n_stock):
 
-        VaR = np.quantile(loss_ratio[i, :], 1 - alpha)
+        VaR = np.quantile(loss_ratio[:, i], 1 - alpha)
 
-        Y[i, :] = loss_ratio[i, :] - VaR
+        Y[:, i] = loss_ratio[:, i] - VaR
 
     M = 50
 
@@ -26,7 +26,7 @@ def opt_DQ_VaR(alpha, loss_ratio, tie_breaker=False, w_0=None):
     X = cp.sum(z)
     objective = cp.Minimize(X)
     # z_i is 0 or 1
-    constraints = [z >= 0, z <= 1, w >= 0, cp.sum(w) == 1, w @ Y - M * z <= 0]
+    constraints = [z >= 0, z <= 1, w >= 0, cp.sum(w) == 1, Y @ w - M * z <= 0]
 
     prob = cp.Problem(objective, constraints)
     prob.solve()
@@ -48,7 +48,7 @@ def opt_DQ_VaR(alpha, loss_ratio, tie_breaker=False, w_0=None):
                        w_plus >= 0, w_plus <= 1, w_minus >= 0, w_minus <= 1,
                        cp.sum(w_plus) - cp.sum(w_minus) == 0, 
                        w_0 + w_plus - w_minus >= 0,
-                       ((w_0 + w_plus - w_minus) @ Y) - (M * z) <= 0]
+                       (Y @ (w_0 + w_plus - w_minus)) - (M * z) <= 0]
 
         prob = cp.Problem(objective, constraints)
         prob.solve()
@@ -70,22 +70,22 @@ def opt_DQ_ES(alpha, loss_ratio, tie_breaker=False, w_0=None):
     # alpha: confidence level
     # loss_ratio: 2-dimension loss ratio of the portfolio
 
-    n_stock = loss_ratio.shape[0]       # number of stocks = number of rows  
-    n_data = loss_ratio.shape[1]        # number of data = number of columns
+    n_stock = loss_ratio.shape[1]       # number of stocks = number of rows  
+    n_data = loss_ratio.shape[0]        # number of data = number of columns
 
     # calculate the VaR of each stock
     Y = np.zeros_like(loss_ratio)
 
     for i in range(n_stock):
 
-        VaR = np.quantile(loss_ratio[i, :], 1 - alpha)
+        VaR = np.quantile(loss_ratio[:, i], 1 - alpha)
 
-        ES = np.mean(loss_ratio[i, loss_ratio[i, :] > VaR])
+        ES = np.mean(loss_ratio[ loss_ratio[:, i] > VaR,i])
 
-        Y[i, :] = loss_ratio[i, :] - ES
+        Y[:, i] = loss_ratio[:, i] - ES
 
     v = cp.Variable(n_stock)
-    X = cp.sum(cp.maximum(v @ Y + np.ones(n_data), 0))
+    X = cp.sum(cp.maximum(Y @ v + np.ones(n_data), 0))
     objective = cp.Minimize(X)
     constraints = [v >= 0]
     prob = cp.Problem(objective, constraints)
@@ -99,7 +99,7 @@ def opt_DQ_ES(alpha, loss_ratio, tie_breaker=False, w_0=None):
         r = cp.Variable(1)
         X=cp.sum(cp.abs(w-w_0))
         objective = cp.Minimize(X)
-        constraints = [r >= 0, w >= 0, w <= 1, cp.sum(w) == 1, cp.sum(cp.maximum(w @ Y + r, 0)) <= r*opt_X]
+        constraints = [r >= 0, w >= 0, w <= 1, cp.sum(w) == 1, cp.sum(cp.maximum(Y @ w + r, 0)) <= r*opt_X]
         prob = cp.Problem(objective, constraints)
         prob.solve()
 

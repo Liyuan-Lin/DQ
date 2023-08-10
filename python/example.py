@@ -37,11 +37,11 @@ for year in range(start_year, end_year + 1):
         training_data = loss_ratio.loc[:current_date][-n_training:]
 
         # calculate the optimal investment weight that minimizes the DQ_VaR
-        w, _ = opt_DQ_VaR(alpha, training_data.T.values, tie_breaker=True, w_0=w)
+        w, _ = opt_DQ_VaR(alpha, training_data.values, tie_breaker=True, w_0=w)
     
         opt_w_DQVaR[loss_ratio.loc[current_date:].index[0]] = w
 
-        v, _ = opt_DQ_ES(alpha, training_data.T.values, tie_breaker=True, w_0=w)
+        v, _ = opt_DQ_ES(alpha, training_data.values, tie_breaker=True, w_0=w)
 
         opt_w_DQES[loss_ratio.loc[current_date:].index[0]] = v
 
