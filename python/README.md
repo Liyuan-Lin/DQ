@@ -54,8 +54,8 @@
 
 ## example.py
 
-We optimize the portfolio weights in each month with a rolling window of 500 days in example.py. That is, in the beginning of each month, starting from 2014/1/2 to 2021/12/32, we use the preceding 500 trading days
-to compute the optimal portfolio weights using minimizes $\mathrm{DQ}^{\mathrm{VaR}}$ and minimizes $\mathrm{DQ}^{\mathrm{ES}}_\alpha$. The portfolio is rebalanced every month.
+We optimize the portfolio weights in each month with a rolling window of 500 days in example.py. That is, at the beginning of each month, starting from 2014/1/2 to 2021/12/32, we use the preceding 500 trading days
+to compute the optimal portfolio weights using minimizes DQ based on VaR and ES. The portfolio is rebalanced every month.
 
 
 If you have specific questions about using this code, implementing it, or interpreting its results, feel free to ask!
