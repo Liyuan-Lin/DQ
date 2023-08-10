@@ -4,7 +4,7 @@ import os
 
 path = "./data/"
 
-def dataLoader(path):
+def dataLoader(path, start_date="2012-01-01"):
 
     file_list = os.listdir(path)
 
@@ -34,6 +34,10 @@ def dataLoader(path):
 
     df_all = - df_all.pct_change()
 
-    df_all = df_all.dropna().T
+    # only select the data after 2012-01-01
+    df_all = df_all.loc[start_date:]
+
+    df_all = df_all.dropna()
+
 
     return df_all

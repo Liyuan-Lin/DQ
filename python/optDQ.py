@@ -1,7 +1,7 @@
 import numpy as np
 import cvxpy as cp
 
-def opt_DQ_VaR(alpha, loss_ratio):
+def opt_DQ_VaR(alpha, loss_ratio, tie_breaker=False, w_0=None):
     
     # alpha: confidence level
     # loss_ratio: 2-dimension loss ratio of the portfolio
@@ -31,11 +31,33 @@ def opt_DQ_VaR(alpha, loss_ratio):
     prob = cp.Problem(objective, constraints)
     prob.solve()
 
-    # output the optimal portfolio
-    opt_w = w.value
-
     # output the optimal X
     opt_X = X.value
+
+    if tie_breaker:
+
+        w_plus = cp.Variable(n_stock)
+        w_minus = cp.Variable(n_stock)
+
+        z = cp.Variable(n_data, integer=True)
+
+        X_norm = cp.sum(w_plus) + cp.sum(w_minus) 
+        objective = cp.Minimize(X_norm)
+        
+        constraints = [z >= 0, z <= 1, cp.sum(z) <= opt_X,
+                       w_plus >= 0, w_plus <= 1, w_minus >= 0, w_minus <= 1,
+                       cp.sum(w_plus) - cp.sum(w_minus) == 0, 
+                       w_0 + w_plus - w_minus >= 0,
+                       ((w_0 + w_plus - w_minus) @ Y) - (M * z) <= 0]
+
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        
+        opt_w = w_0 + w_plus.value - w_minus.value
+
+    else:
+            
+        opt_w = w.value
 
     # calculate the optimal DQ_VaR
     opt_DQ_VaR = opt_X / n_data / alpha
@@ -43,7 +65,7 @@ def opt_DQ_VaR(alpha, loss_ratio):
     return opt_w, opt_DQ_VaR
 
 
-def opt_DQ_ES(alpha, loss_ratio):
+def opt_DQ_ES(alpha, loss_ratio, tie_breaker=False, w_0=None):
 
     # alpha: confidence level
     # loss_ratio: 2-dimension loss ratio of the portfolio
@@ -69,10 +91,25 @@ def opt_DQ_ES(alpha, loss_ratio):
     prob = cp.Problem(objective, constraints)
     prob.solve()
 
-    v = v.value
+    opt_X= X.value
 
-    w = v / np.sum(v)
+    if tie_breaker:
 
-    DQ_ES = X.value / n_data / alpha
+        w= cp.Variable(n_stock)
+        r = cp.Variable(1)
+        X=cp.sum(cp.abs(w-w_0))
+        objective = cp.Minimize(X)
+        constraints = [r >= 0, w >= 0, w <= 1, cp.sum(w) == 1, cp.sum(cp.maximum(w @ Y + r, 0)) <= r*opt_X]
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
 
-    return w, DQ_ES
+        opt_w = w.value
+
+    else:
+       
+        opt_w= v.value
+        
+
+    DQ_ES = opt_X / n_data / alpha
+
+    return opt_w, DQ_ES
