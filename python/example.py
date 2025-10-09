@@ -1,6 +1,6 @@
-from calDQ import DQ_VaR, DQ_ES
-from optDQ import opt_DQ_VaR, opt_DQ_ES
 from dataLoader import dataLoader
+from optDQ import opt_DQ_portfolio
+from calDQ import DQ_VaR, DQ_ES
 
 import numpy as np 
 import pandas as pd
@@ -8,62 +8,38 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-path = "./data/"
+import datetime
+import cvxpy as cp
+
 
 alpha = 0.05
+window_size = 500
+today = datetime.datetime.now().strftime("%Y-%m-%d")
 
-n_training = 500
+loss_ratio = dataLoader(start_date="2012-01-01", end_date=today)
 
-loss_ratio = dataLoader(path, start_date="2011-01-01")
+df_DQ_VaR = DQ_VaR(alpha, loss_ratio, window_size)
+df_DQ_ES = DQ_ES(alpha, loss_ratio, window_size)
 
-n_stock = loss_ratio.shape[1]       # number of stocks = number of rows  
-
-start_year, start_month = 2014, 1
-end_year, end_month = 2021, 12
-
-initial_value = 1000
-opt_w_DQVaR= {}
-opt_w_DQES= {}
-w = np.ones(n_stock) / n_stock
-
-for year in range(start_year, end_year + 1):
-
-    for month in range(1, 13):
-
-        current_date = str(year) + "-" + str(month).zfill(2) + "-00"
-
-        training_data = loss_ratio.loc[:current_date][-n_training:]
-
-        # calculate the optimal investment weight that minimizes the DQ_VaR
-        w, _ = opt_DQ_VaR(alpha, training_data.values, tie_breaker=True, w_0=w)
-    
-        opt_w_DQVaR[loss_ratio.loc[current_date:].index[0]] = w
-
-        v, _ = opt_DQ_ES(alpha, training_data.values, tie_breaker=True, w_0=w)
-
-        opt_w_DQES[loss_ratio.loc[current_date:].index[0]] = v
+portfolio_value_DQVaR, portfolio_value_DQES = opt_DQ_portfolio(alpha, loss_ratio, window_size)
 
 
-# put optimal weight into a dataframe
-opt_w_DQVaR = pd.DataFrame(opt_w_DQVaR, index=loss_ratio.columns).T
+plt.figure(figsize=(10, 6))
 
-opt_w_DQES = pd.DataFrame(opt_w_DQES, index=loss_ratio.columns).T
+plt.plot(df_DQ_VaR, label="DQ_VaR")
+plt.plot(df_DQ_ES, label="DQ_ES")
 
-loss_ratio.index = pd.to_datetime(loss_ratio.index)
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-# calculate the monthly return 
-return_M = (1-loss_ratio).resample("M").prod().loc["2014-01-01":]
+plt.gca().xaxis.set_major_locator(mdates.YearLocator())
 
-return_M.index = opt_w_DQVaR.index
+plt.xlabel("Date")
+plt.ylabel("Portfolio Value")
+plt.title("DQ Values (Updated Weekly)")
 
-portfolio_value_DQVaR = (return_M * opt_w_DQVaR).sum(axis=1).cumprod(axis=0) * initial_value
+plt.legend()
 
-portfolio_value_DQVaR.index = pd.to_datetime(portfolio_value_DQVaR.index)
-
-portfolio_value_DQES = (return_M * opt_w_DQES).sum(axis=1).cumprod(axis=0) * initial_value
-
-portfolio_value_DQES.index = pd.to_datetime(portfolio_value_DQES.index)
-
+plt.savefig("./output/DQs.png")
 
 
 plt.figure(figsize=(10, 6))
@@ -76,10 +52,13 @@ plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 plt.gca().xaxis.set_major_locator(mdates.YearLocator())
 
 plt.xlabel("Date")
-plt.ylabel("Portfolio Value")
-
+plt.ylabel("Portfolio Value ($)")
+plt.title("Wealth Processes for Portfolio Optimized by DQ_VaR and DQ_ES (Updated Weekly)")
 plt.legend()
 
-plt.savefig("./output/DQ.png")
+plt.savefig("./output/DQ_portfolio.png")
+
+
+
 
 

@@ -1,5 +1,7 @@
 import numpy as np
 import cvxpy as cp
+import pandas as pd
+import datetime
 
 def opt_DQ_VaR(alpha, loss_ratio, tie_breaker=False, w_0=None):
     
@@ -113,3 +115,66 @@ def opt_DQ_ES(alpha, loss_ratio, tie_breaker=False, w_0=None):
     DQ_ES = opt_X / n_data / alpha
 
     return opt_w, DQ_ES
+
+
+def opt_DQ_portfolio(alpha, loss_ratio, window_size=500):
+
+    # alpha: confidence level
+    # loss_ratio: 2-dimension loss ratio of the portfolio
+    # window_size: training window size
+
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    # Convert index to datetime
+    loss_ratio.index = pd.to_datetime(loss_ratio.index)
+
+    n_stock = loss_ratio.shape[1]       # number of stocks = number of rows  
+
+    start_year, start_month = 2014, 1
+    end_year, end_month = int(today.split("-")[0]), int(today.split("-")[1])
+
+    initial_value = 1000
+    opt_w_DQVaR= {}
+    opt_w_DQES= {}
+    w = np.ones(n_stock) / n_stock
+
+    for year in range(start_year, end_year + 1):
+
+        for month in range(1, 13):
+
+            # Use the first day of the month as reference
+            current_date = pd.Timestamp(year=year, month=month, day=1)
+
+            # Get training data up to the current date
+            training_data = loss_ratio.loc[:current_date][-window_size:]
+
+            # calculate the optimal investment weight that minimizes the DQ_VaR
+            w, _ = opt_DQ_VaR(alpha, training_data.values, tie_breaker=True, w_0=w)
+        
+            # Get the first available date at or after current_date
+            future_dates = loss_ratio.loc[current_date:].index
+            if len(future_dates) > 0:
+                opt_w_DQVaR[future_dates[0]] = w
+                v, _ = opt_DQ_ES(alpha, training_data.values, tie_breaker=True, w_0=w)
+                opt_w_DQES[future_dates[0]] = v
+
+
+    # put optimal weight into a dataframe
+    opt_w_DQVaR = pd.DataFrame(opt_w_DQVaR, index=loss_ratio.columns).T
+
+    opt_w_DQES = pd.DataFrame(opt_w_DQES, index=loss_ratio.columns).T
+
+    # calculate the monthly return 
+    return_M = (1-loss_ratio).resample("ME").prod().loc["2014-01-01":]
+
+    return_M.index = opt_w_DQVaR.index
+
+    portfolio_value_DQVaR = (return_M * opt_w_DQVaR).sum(axis=1).cumprod(axis=0) * initial_value
+
+    portfolio_value_DQVaR.index = pd.to_datetime(portfolio_value_DQVaR.index)
+
+    portfolio_value_DQES = (return_M * opt_w_DQES).sum(axis=1).cumprod(axis=0) * initial_value
+
+    portfolio_value_DQES.index = pd.to_datetime(portfolio_value_DQES.index)
+
+    return portfolio_value_DQVaR, portfolio_value_DQES
