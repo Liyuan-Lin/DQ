@@ -14,8 +14,9 @@ python example.py
 
 ## example.py
 
-We optimize the portfolio weights in each month with a rolling window of 500 days in example.py. That is, at the beginning of each month, starting from 2014/1/2 to 2021/12/32, we use the preceding 500 trading days
-to compute the optimal portfolio weights using minimizes DQ based on VaR and ES. The portfolio is rebalanced every month.
+
+In example.py, we calculate the DQ VaR and DQ ES values for the equal-weighted portfolio of 20 stocks (AAPL, AMZN, BRK-B, CVX, D, FCX, GE, JNJ, MCD, MSFT, NEM, PFE, PG, SO, T, UPS, VZ, WFC, WMT, XOM) with a rolling window of 500 days starting from 2014/1/2 and update the values every week.
+In addition, we optimize the portfolio weights in each month with a rolling window of 500 days.  That is, at the beginning of each month starting from 2014/1/2, we use the preceding 500 trading days to compute the optimal portfolio weights by minimizes DQ based on VaR and ES. The portfolio is rebalanced every month. 
 
 
 ## calDQ.py
@@ -26,8 +27,9 @@ to compute the optimal portfolio weights using minimizes DQ based on VaR and ES.
 - **Input:**
   - `loss_ratio`: A matrix of loss ratios of n stocks, with each row representing a data record.
   - `alpha`: The significance level for $\mathrm{DQ}^{\mathrm{ES}}_\alpha$.
+  - `window_size`: The size of the rolling window.
 - **Output:**
-  - A real number representing the value of $\mathrm{DQ}^{\mathrm{VaR}}_\alpha$.
+  - A sequence of real numbers representing the value of $\mathrm{DQ}^{\mathrm{VaR}}_\alpha$ calculated with a rolling window of 500 days.
 
 ### DQ_ES
 
@@ -35,8 +37,9 @@ to compute the optimal portfolio weights using minimizes DQ based on VaR and ES.
 - **Input:**
   - `loss_ratio`: A matrix of loss ratios of n stocks, with each row representing a data record.
   - `alpha`: The significance level for $\mathrm{DQ}^{\mathrm{ES}}_\alpha$.
+  - `window_size`: The size of the rolling window.
 - **Output:**
-  - A real number representing the value of $\mathrm{DQ}^{\mathrm{ES}}_\alpha$.
+  - A sequence of real numbers representing the value of $\mathrm{DQ}^{\mathrm{ES}}_\alpha$ calculated with a rolling window of 500 days.
 
 ---
 
@@ -74,4 +77,4 @@ to compute the optimal portfolio weights using minimizes DQ based on VaR and ES.
 
 
 
-If you have specific questions about using this code, implementing it, or interpreting its results, feel free to ask!
+If you have specific questions about using this code, implementing it, or interpreting its results, feel free to contact me at Liyuan.Lin@gmail.com!
