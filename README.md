@@ -1,4 +1,4 @@
-# Diversification Quotient Implementation in Python
+# Diversification Quotient Implementation in Python (Weekly Updated)
 
 This is the implementation of the Diversification Quotient (DQ) in Python that generates weekly updates of the DQ value.
 
