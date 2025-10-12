@@ -83,3 +83,5 @@ def DQ_ES(alpha, loss_ratio, window_size=500):
     df_DQ_ES = pd.DataFrame.from_dict(DQ_ES, orient='index')
 
     return df_DQ_ES
+
+

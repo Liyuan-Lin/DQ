@@ -23,11 +23,10 @@ df_DQ_ES = DQ_ES(alpha, loss_ratio, window_size)
 
 portfolio_value_DQVaR, portfolio_value_DQES = opt_DQ_portfolio(alpha, loss_ratio, window_size)
 
-
 plt.figure(figsize=(10, 6))
 
-plt.plot(df_DQ_VaR, label="DQ_VaR")
-plt.plot(df_DQ_ES, label="DQ_ES")
+plt.plot(df_DQ_VaR, label=f"DQ_VaR")
+plt.plot(df_DQ_ES, label=f"DQ_ES")
 
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
@@ -44,8 +43,8 @@ plt.savefig("./output/DQs.png")
 
 plt.figure(figsize=(10, 6))
 
-plt.plot(portfolio_value_DQVaR, label="DQ_VaR")
-plt.plot(portfolio_value_DQES, label="DQ_ES")
+plt.plot(portfolio_value_DQVaR, label=f"DQ_VaR: {terminal_wealth_DQVaR:,.2f}")
+plt.plot(portfolio_value_DQES, label=f"DQ_ES: {terminal_wealth_DQES:,.2f}")
 
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
