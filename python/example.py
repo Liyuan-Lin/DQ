@@ -43,8 +43,8 @@ plt.savefig("./output/DQs.png")
 
 plt.figure(figsize=(10, 6))
 
-plt.plot(portfolio_value_DQVaR, label=f"DQ_VaR: {terminal_wealth_DQVaR:,.2f}")
-plt.plot(portfolio_value_DQES, label=f"DQ_ES: {terminal_wealth_DQES:,.2f}")
+plt.plot(portfolio_value_DQVaR)
+plt.plot(portfolio_value_DQES)
 
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
