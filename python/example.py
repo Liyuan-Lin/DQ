@@ -43,8 +43,8 @@ plt.savefig("./output/DQs.png")
 
 plt.figure(figsize=(10, 6))
 
-plt.plot(portfolio_value_DQVaR)
-plt.plot(portfolio_value_DQES)
+plt.plot(portfolio_value_DQVaR, label="Optimized with DQ_VaR")
+plt.plot(portfolio_value_DQES, label="Optimized with DQ_ES")
 
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
